@@ -17,6 +17,7 @@ struct Landmark: Hashable,
     var park: String
     var state: String
     var description: String
+    var isFavorite: Bool
     
     private var imageName: String
     var image: Image {
