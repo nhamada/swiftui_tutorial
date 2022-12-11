@@ -15,19 +15,32 @@ struct LandmarkList: View {
      */
     @State private var showFavoriteOnly = false
     
+    @State private var filter = FilterCategory.all
+    
+    enum FilterCategory: String, CaseIterable, Identifiable {
+        case all = "All"
+        case lakes = "Lakes"
+        case rivers = "Rivers"
+        case mountains = "Mountains"
+        
+        var id: FilterCategory { self }
+    }
+    
     var filteredLandmarks: [Landmark] {
         modelData.landmarks.filter {
-            !showFavoriteOnly || $0.isFavorite
+            (!showFavoriteOnly || $0.isFavorite)
+            && (filter == .all || filter.rawValue == $0.category.rawValue)
         }
+    }
+    
+    var title: String {
+        let title = filter == .all ? "Landmarks" : filter.rawValue
+        return showFavoriteOnly ? "Favorite \(title)" : title
     }
     
     var body: some View {
         NavigationView {
             List {
-                Toggle(isOn: $showFavoriteOnly) {
-                    Text("Favorites Only")
-                }
-                
                 ForEach(filteredLandmarks) { landmark in
                     NavigationLink {
                         LandmarkDetail(landmark: landmark)
@@ -36,7 +49,28 @@ struct LandmarkList: View {
                     }
                 }
             }
-            .navigationTitle("Landmarks")
+            .navigationTitle(title)
+            .frame(minWidth: 300)
+            .toolbar {
+                ToolbarItem {
+                    Menu {
+                        Picker("Category", selection: $filter) {
+                            ForEach(FilterCategory.allCases) {
+                                Text($0.rawValue).tag($0)
+                            }
+                        }
+                        .pickerStyle(.inline)
+                        
+                        Toggle(isOn: $showFavoriteOnly) {
+                            Label("Favorites only", systemImage: "star.fill")
+                        }
+                    } label: {
+                        Label("Filter", systemImage: "slider.horizontal.3")
+                    }
+                }
+            }
+            
+            Text("Select a Landmark")
         }
     }
 }
